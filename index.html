@@ -1,0 +1,187 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<!--
+
+    Highway Data Examiner (HDX) page, modified for sample implementation
+    of vertex search for northern/southern/eastern/westernmost waypoints
+    with an interactive visualization
+
+    Load and view data files related to Clinched Highway Mapping (CHM)
+    related academic data sets.
+    
+    Author: Jim Teresco, Siena College, The College of Saint Rose
+    
+    Modification History:
+    
+    2011-06-20 JDT  Initial implementation
+    2011-06-21 JDT  Added .gra support and checkbox for hidden marker display
+    2011-06-23 JDT  Added .nmp file styles
+    2011-08-30 JDT  Renamed to HDX, added more styles
+    2013-08-14 JDT  Completed update to Google Maps API V3
+
+    $Id: index.html 1655 2011-08-31 18:36:52Z terescoj $
+-->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<link rel="stylesheet" type="text/css" href="index.css">
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.1.2/css/ion.rangeSlider.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.1.2/css/ion.rangeSlider.skinFlat.css">
+<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.1.2/js/ion.rangeSlider.min.js"></script>
+
+
+<script
+ src="http://maps.googleapis.com/maps/api/js?sensor=false"
+ type="text/javascript"></script>
+<!-- load in needed JS functions -->
+<script src="chmviewerfunc3.js" type="text/javascript"></script>
+<script>
+    /*
+    <option value="5">Extremely fast</option>
+		  <option value="20">Very fast</option>
+		  <option value="50" selected>Fast</option>
+		  <option value="100">Medium speed</option>
+		  <option value="250">Pretty slow</option>
+		  <option value="500">Slow</option>
+		  <option value="1000">Painfully slow</option>
+          
+          show the code
+    */
+    var speedMap = {
+        "Very Slow": 1000,
+        "Pretty Slow": 500,
+        "Slow": 250,
+        "Medium Speed": 100,
+        "Fast": 50,
+        "Very Fast": 20,
+        "Extremely Fast": 5
+    };
+    
+    function onSpeedChanged() {
+        delay =speedMap[$('#range_16').val()];
+    }
+    
+    $(function(){
+        $("#range_16").ionRangeSlider({
+            grid: false,
+            from: 1,
+            values: [
+                "Very Slow",
+                "Pretty Slow",
+                "Slow",
+                "Medium Speed",
+                "Fast",
+                "Very Fast",
+                "Extremely Fast"
+            ]
+        });
+    });
+    
+</script>
+<style>
+    .ui-slider-handle {
+        height: 16px !important;
+        width: 16px !important;
+    }
+</style>
+
+<!-- new window -->
+<script> 
+    function pseducodeNewWindow(){
+        var myWindow = window.open("", "new window", "right=0, top=0, width=500, height=500");
+        myWindow.document.write("<h1>Pseudo-code for Dijkstra's Algorithm</h1>");
+        myWindow.document.write("<p>Dijkstra’s Algorithm is a procedure to find shortest paths from a given vertex s in a graph G to all other vertices – the single-source shortest path problem. The algorithm incrementally builds a sub-graph of G which is in fact a tree containing shortest paths from s to every other vertex in the tree. A step of the algorithm consists of determining which vertex to add to the tree next. This is a variant of the approach in the Bailey text and the approach you will use when you code this.</p>"); 
+        myWindow.document.write("<br/>");
+        myWindow.document.write("<p>/* initialization */</p>");
+        myWindow.document.write("<p>PriorityQueue openList = { startVertex }</p>");
+        myWindow.document.write("<p>array cost = { Big, Big, Big, ... }</p>");
+        myWindow.document.write("<p>array pred = { No, No, No, ... }</p>");
+        myWindow.document.write("<p>cost[startVertex] = 0;</p>");
+        myWindow.document.write("<br/>");
+        myWindow.document.write("<p>/* loop*/</p>");
+        myWindow.document.write("<p>while ( !openList.empty())  {</p>");
+        myWindow.document.write("<p>closingVertex = vertex in openList with minimum value in cost[];</p>");
+        myWindow.document.write("<p>remove closingVertex from openList;</p>");
+        myWindow.document.write("<br/>");
+        myWindow.document.write("<p>for each non-closed vertex with an edge from closingVertex  {</p>");
+        myWindow.document.write("<p>if ( cost[vertex] > cost[closingVertex] + edgeWeight ) {</p>");
+        myWindow.document.write("<p>cost[vertex] = cost[closingVertex] + edgeWeight;</p>");
+        myWindow.document.write("<p>pred[vertex] = closingVertex;</p>");
+        myWindow.document.write("<p>put vertex into openList;</p>");
+        myWindow.document.write("<p>}</p>");
+        myWindow.document.write("<p>}</p>");
+        myWindow.document.write("<p>}</p>");
+    }
+</script>
+    
+<title>Graph Algorithm Visualization: Draft Algorithm Visualization Enhancement</title>
+</head>
+<body onload="loadmap();">
+
+	<!-- title -->
+	<div id="headerbox">
+		<div id="title">Graph Algorithm Visualization</div>
+	</div>
+	
+
+	<div id="controlbox">
+        <!-- result when you start algorithm -->
+		
+        <div id="resultWrap">
+            <p id="status">&nbsp;</p> 
+        </div>
+        <div id="allControl">
+		<span id="filename" style="display:none;">Select a file to display</span>
+
+		<!-- Choose a file -->
+		<input id="file" type="file" onchange="startRead()">
+		<!-- <input id="showHidden" type="checkbox" name="Show Hidden Markers" onclick="showHiddenClicked()" checked="false">&nbsp;Show Hidden Markers -->
+		
+		
+		
+		<!-- change speed selector 
+		<select id="speedChanger" onchange="speedChanged()">
+		  <option value="5">Extremely fast</option>
+		  <option value="20">Very fast</option>
+		  <option value="50" selected>Fast</option>
+		  <option value="100">Medium speed</option>
+		  <option value="250">Pretty slow</option>
+		  <option value="500">Slow</option>
+		  <option value="1000">Painfully slow</option>
+		</select>
+        -->
+         <label id="speed-label">Speed</label>
+        <div style="width: 150px; display: inline-block;">
+           
+            <input id="range_16" class="irs-hidden-input" style="display:none;" onchange="onSpeedChanged()" readonly="">
+        </div>
+		
+        <!-- start search button -->
+		<input id="startSearch" type="button" value="Start" disabled="true" onclick="startSearch()">
+        	
+		<!-- pause button -->
+		<input id="pauseRestart" type="button" value="Pause" disabled="true" onclick="pauseRestart()">
+		
+		<!-- Diff algorithm selector -->
+		<select id="diffAlgorithm" onchange="onAlgorithmChange()">
+		  <option value="1" selected>Extreme Point</option>
+		  <option value="2">Edge Based</option>
+		  <option value="3">Dijkstra's</option>
+		</select>
+		
+        <!-- new window -->
+        <button id= "Pseudo" onclick="pseducodeNewWindow()">Pseudo Code</button>
+        
+		
+        </div>
+	</div>
+	
+	<div id="pointbox">
+		No data loaded.
+	</div>
+	
+	<div id="map">
+	</div>
+</body>
+</html>
